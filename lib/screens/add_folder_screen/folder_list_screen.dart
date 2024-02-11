@@ -1,3 +1,4 @@
+import 'package:educator_app/screens/add_folder_screen/add_folder.dart';
 import 'package:educator_app/screens/res/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -17,13 +18,18 @@ class _FolderListScreenState extends State<FolderListScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.green,
         shape: const CircleBorder(),
-        onPressed: (){},
+        onPressed: () {
+          Navigator.of(context).pop();
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (context) => const AddFolder()));
+        },
         child: const Icon(
           Icons.add,
           color: AppColors.black,
         ),
       ),
       appBar: AppBar(
+        backgroundColor: AppColors.backGround,
         title: const Text('Folders'),
         centerTitle: true,
       ),
@@ -38,18 +44,21 @@ class _FolderListScreenState extends State<FolderListScreen> {
           itemCount: 20, // Number of items in the grid
           itemBuilder: (BuildContext context, int index) {
             return Column(
-               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  color: Colors.yellow,
-                  splashColor: AppColors.blue,
-                  focusColor: AppColors.blue,
-                  hoverColor: AppColors.blue,
-                  iconSize: 70,
-                  onPressed: () {}, 
-                  icon: const Icon(Icons.folder)),
-                  const Gap(8),
-                Text('Folder $index', style: const TextStyle(color: AppColors.black),)
+                    color: Colors.yellow,
+                    splashColor: AppColors.blue,
+                    focusColor: AppColors.blue,
+                    hoverColor: AppColors.blue,
+                    iconSize: 70,
+                    onPressed: () {},
+                    icon: const Icon(Icons.folder)),
+                const Gap(8),
+                Text(
+                  'Folder $index',
+                  style: const TextStyle(color: AppColors.black),
+                )
               ],
             );
           },
