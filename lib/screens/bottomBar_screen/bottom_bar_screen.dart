@@ -1,4 +1,4 @@
-import 'package:educator_app/screens/add_folder_screen/add_folder_screen.dart';
+import 'package:educator_app/screens/add_folder_screen/folder_list_screen.dart';
 import 'package:educator_app/screens/entry_screen/entry_screen.dart';
 import 'package:educator_app/screens/home_screen/home_screen.dart';
 import 'package:educator_app/screens/instructor_screen/instructor_screen.dart';
@@ -39,7 +39,7 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
       const HomeScreen(),
       const EntryScreen(),
       const InstructorScreen(),
-      const AddFolderScreen()
+      const FolderListScreen()
     ]);
 
     super.initState();

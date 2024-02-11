@@ -44,8 +44,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.of(context).pop();
                             Navigator.of(context).push(MaterialPageRoute(
                                 builder: (context) => const BottomBarScreen(
-                                    isEntryScreen: true,
-                                    isInstructorScreen: false, isAddFolderScreen: false,)));
+                                      isEntryScreen: true,
+                                      isInstructorScreen: false,
+                                      isAddFolderScreen: false,
+                                    )));
                           },
                           child: Stack(
                             children: [
@@ -151,8 +153,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.of(context).pop();
                             Navigator.of(context).push(MaterialPageRoute(
                                 builder: (context) => const BottomBarScreen(
-                                    isEntryScreen: false,
-                                    isInstructorScreen: true,isAddFolderScreen: false,)));
+                                      isEntryScreen: false,
+                                      isInstructorScreen: true,
+                                      isAddFolderScreen: false,
+                                    )));
                           },
                           child: Stack(
                             children: [
@@ -263,8 +267,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.of(context).pop();
                             Navigator.of(context).push(MaterialPageRoute(
                                 builder: (context) => const BottomBarScreen(
-                                    isEntryScreen: false,
-                                    isInstructorScreen: false,isAddFolderScreen: true,)));
+                                      isEntryScreen: false,
+                                      isInstructorScreen: false,
+                                      isAddFolderScreen: true,
+                                    )));
                           },
                           child: Stack(
                             children: [
