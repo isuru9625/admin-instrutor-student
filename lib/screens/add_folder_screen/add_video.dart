@@ -39,7 +39,7 @@ class _AddVideoState extends State<AddVideo> {
   void initState() {
     super.initState();
     setState(() {
-      lessons.addAll(['Biology', 'Chemistry', 'Physics']);
+      lessons.addAll(['Introduction to Biology', 'Chemical and cellular basis of life', 'Evolution and diversity of organisms', 'Evolution and diversity of organisms', 'Part 1-Animal form and function', 'Part 2-Animal form and function', 'Genetics, Molecular Biology and Recombinant DNA Technology', 'Environmental Biology', 'Microbiology', 'Applied Biology']);
 
       selectedLesson = lessons.first;
       _selectedDate = DateTime.now();
