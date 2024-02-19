@@ -50,7 +50,7 @@ class Video {
 class Folder {
   String folderName = '';
   List<dynamic> emailList = [];
-   String docId = '';
+  String docId = '';
   late Timestamp uploadedDate;
 
   Folder(

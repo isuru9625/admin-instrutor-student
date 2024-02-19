@@ -15,11 +15,13 @@ class AddFolder extends StatefulWidget {
   final bool isUpdate;
   final Folder? folderDetails;
   final void Function() callBack;
+  final List<String> folderNames;
   const AddFolder(
       {super.key,
       required this.isUpdate,
       required this.folderDetails,
-      required this.callBack});
+      required this.callBack,
+      required this.folderNames});
 
   @override
   State<AddFolder> createState() => _AddFolderState();
@@ -32,7 +34,7 @@ class _AddFolderState extends State<AddFolder> {
   final formKey = GlobalKey<FormState>();
   final folderNameController = TextEditingController();
   final emailListController = TextEditingController();
-  late Video videoDetail;
+   Video? videoDetail;
   bool isVideo = false;
   List<VideoDetail> videoList = [];
   bool isLoading = false;
@@ -85,15 +87,15 @@ class _AddFolderState extends State<AddFolder> {
     try {
       final emailList = emailListController.text.split('\n');
       String videoId = const Uuid().v1();
-      ProgressPopup(
-              context, videoDetail.videoFile, videoDetail.thumbnail, videoId)
-          .show();
 
       await FirebaseFirestore.instance.collection('folders').add({
         'folderName': folderNameController.text,
         'emailList': emailList,
         'videoUploadedDate': DateTime.now()
       }).then((folderDoc) {
+        ProgressPopup(context, videoDetail!.videoFile, videoDetail!.thumbnail,
+                videoId, folderDoc.id)
+            .show();
         // Add video details to videoDetails subcollection
         FirebaseFirestore.instance
             .collection('folders')
@@ -102,12 +104,12 @@ class _AddFolderState extends State<AddFolder> {
             .add({
           'videoId': videoId,
           'docId': folderDoc.id,
-          'title': videoDetail.title,
-          'description': videoDetail.description,
-          'lessons': videoDetail.lesson,
-          'date': videoDetail.date,
+          'title': videoDetail!.title,
+          'description': videoDetail!.description,
+          'lessons': videoDetail!.lesson,
+          'date': videoDetail!.date,
           'videoUploadedDate': DateTime.now(),
-          'videoPath': videoDetail.videoFileName,
+          'videoPath': videoDetail!.videoFileName,
         });
       });
 
@@ -130,8 +132,8 @@ class _AddFolderState extends State<AddFolder> {
     try {
       final emailList = emailListController.text.split('\n');
       String videoId = const Uuid().v1();
-      ProgressPopup(
-              context, videoDetail.videoFile, videoDetail.thumbnail, videoId)
+      ProgressPopup(context, videoDetail!.videoFile, videoDetail!.thumbnail,
+              videoId, widget.folderDetails!.docId)
           .show();
       await FirebaseFirestore.instance
           .collection('folders')
@@ -148,12 +150,12 @@ class _AddFolderState extends State<AddFolder> {
           .add({
         'videoId': videoId,
         'docId': widget.folderDetails!.docId,
-        'title': videoDetail.title,
-        'description': videoDetail.description,
-        'lessons': videoDetail.lesson,
-        'date': videoDetail.date,
+        'title': videoDetail!.title,
+        'description': videoDetail!.description,
+        'lessons': videoDetail!.lesson,
+        'date': videoDetail!.date,
         'videoUploadedDate': DateTime.now(),
-        'videoPath': videoDetail.videoFileName,
+        'videoPath': videoDetail!.videoFileName,
       });
 
       setState(() {
@@ -178,10 +180,14 @@ class _AddFolderState extends State<AddFolder> {
       final loading = LoadingPopup(context);
       loading.show();
       FirebaseStorage storage = FirebaseStorage.instance;
-      Reference storageRef =
-          storage.ref().child('videos').child('$videoId.mp4');
-      Reference thumbnailRef =
-          storage.ref().child('thumbnail').child('$videoId.jpg');
+      Reference storageRef = storage
+          .ref()
+          .child('videos/${widget.folderDetails!.docId}')
+          .child('$videoId.mp4');
+      Reference thumbnailRef = storage
+          .ref()
+          .child('thumbnail/${widget.folderDetails!.docId}')
+          .child('$videoId.jpg');
       await storageRef.delete();
       await thumbnailRef.delete();
       await FirebaseFirestore.instance
@@ -197,6 +203,53 @@ class _AddFolderState extends State<AddFolder> {
       print('Video file deleted successfully');
     } catch (e) {
       print('Error deleting video file: $e');
+    }
+  }
+
+  Future<void> deleteFolder() async {
+    try {
+      final loading = LoadingPopup(context);
+      loading.show();
+      FirebaseStorage storage = FirebaseStorage.instance;
+      if(videoList.isNotEmpty){
+ for (var element in videoList) {
+        Reference storageRef = storage
+            .ref()
+            .child('videos/${widget.folderDetails!.docId}')
+            .child('${element.videoId}.mp4');
+        Reference thumbnailRef = storage
+            .ref()
+            .child('thumbnail/${widget.folderDetails!.docId}')
+            .child('${element.videoId}.jpg');
+        await storageRef.delete();
+        await thumbnailRef.delete();
+         await FirebaseFirestore.instance
+            .collection('folders')
+            .doc(element.docId)
+            .collection('videoDetails')
+            .doc(element.videoDocId)
+            .delete();
+      }
+      }
+     
+      await FirebaseFirestore.instance
+          .collection('folders')
+          .doc(widget.folderDetails!.docId)
+          .delete();
+      
+      loading.dismiss();
+      widget.callBack();
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pop();
+      // ignore: use_build_context_synchronously
+      Globals.showSnackBar(
+          context: context, message: 'Deleted successfully', isSuccess: true);
+      print('Folder deleted successfully');
+    } catch (e) {
+      print('Error deleting video file: $e');
+      // ignore: use_build_context_synchronously
+      Globals.showSnackBar(
+          context: context, message: e.toString(), isSuccess: false);
     }
   }
 
@@ -242,6 +295,23 @@ class _AddFolderState extends State<AddFolder> {
         backgroundColor: AppColors.backGround,
         title: const Text('Add a new folder'),
         centerTitle: true,
+        actions: [
+          Visibility(
+            visible: widget.isUpdate,
+            child: IconButton(
+                onPressed: () {
+                  ConfirmationPopup(context).show(
+                      message: 'Are you sure you want to delete the folder?',
+                      callbackOnYesPressed: () {
+                        deleteFolder();
+                      });
+                },
+                icon: const Icon(
+                  Icons.delete,
+                  color: AppColors.red,
+                )),
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -258,34 +328,35 @@ class _AddFolderState extends State<AddFolder> {
                   style: TextStyle(color: AppColors.black),
                 ),
                 const Gap(10),
-                IgnorePointer(
-                  ignoring: widget.isUpdate,
-                  child: TextFormField(
-                    style: valueStyle,
-                    controller: folderNameController,
-                    cursorColor: cursorColor,
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.done,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: widget.isUpdate
-                          ? AppColors.greyUnSelected
-                          : AppColors.ligthWhite,
-                      labelText: 'Enter folder name',
-                      labelStyle: const TextStyle(fontSize: 10),
-                      focusedBorder: focusedBorder,
-                      enabledBorder: enabledBorder,
-                      border: focusedBorder,
-                      errorBorder: errorBorder,
-                      errorStyle: errorStyle,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter the folder name';
-                      }
-                      return null;
-                    },
+                TextFormField(
+                  style: valueStyle,
+                  controller: folderNameController,
+                  cursorColor: cursorColor,
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.ligthWhite,
+                    labelText: 'Enter folder name',
+                    labelStyle: const TextStyle(fontSize: 10),
+                    focusedBorder: focusedBorder,
+                    enabledBorder: enabledBorder,
+                    border: focusedBorder,
+                    errorBorder: errorBorder,
+                    errorStyle: errorStyle,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the folder name';
+                    }
+                    if (!widget.isUpdate) {
+                      if (widget.folderNames.contains(value.toLowerCase())) {
+                        return 'Folder name is already exists';
+                      }
+                    }
+
+                    return null;
+                  },
                 ),
                 const Gap(20),
                 GestureDetector(
@@ -296,7 +367,7 @@ class _AddFolderState extends State<AddFolder> {
                                 callBackVideo: (Video video) {
                                   setState(() {
                                     videoDetail = video;
-                                    isVideo = videoDetail.isVideo;
+                                    isVideo = videoDetail!.isVideo;
                                   });
                                 },
                                 isUpdate: widget.isUpdate,
@@ -454,7 +525,7 @@ class _AddFolderState extends State<AddFolder> {
                       onPressed: () {
                         FocusScope.of(context).requestFocus(FocusNode());
                         if (!formKey.currentState!.validate()) return;
-                        if (videoDetail.videoFileName.isEmpty) {
+                        if (videoDetail == null) {
                           Globals.showSnackBar(
                               context: context,
                               message: 'Please upload the file',

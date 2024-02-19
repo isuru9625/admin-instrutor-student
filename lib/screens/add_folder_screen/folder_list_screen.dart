@@ -14,6 +14,7 @@ class FolderListScreen extends StatefulWidget {
 class _FolderListScreenState extends State<FolderListScreen> {
   List<DocumentSnapshot> data = [];
   List<Folder> folderList = [];
+  List<String> folderName = [];
   bool isLoading = false;
   @override
   void initState() {
@@ -38,9 +39,11 @@ class _FolderListScreenState extends State<FolderListScreen> {
           Folder(
             folderName: folder['folderName'],
             emailList: folder['emailList'],
-            uploadedDate: folder['videoUploadedDate'], docId: folder.id,
+            uploadedDate: folder['videoUploadedDate'],
+            docId: folder.id,
           ),
         );
+        folderName.add(folder['folderName'].toString().toLowerCase());
       }
       isLoading = false;
     });
@@ -62,6 +65,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
                       fetch();
                     },
                     folderDetails: null,
+                    folderNames: folderName,
                   )));
         },
         child: const Icon(
@@ -115,6 +119,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
                                             fetch();
                                           },
                                           folderDetails: folder,
+                                          folderNames: folderName,
                                         )));
                               },
                               icon: const Icon(Icons.folder)),
