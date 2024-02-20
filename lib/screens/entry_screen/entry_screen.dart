@@ -512,7 +512,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                                   ConfirmationPopup(context)
                                                       .show(
                                                           message:
-                                                              'Are you sure you want to delete the paper?',
+                                                              'Are you sure you want to delete the ${paperList[index].paperName} paper?',
                                                           callbackOnYesPressed:
                                                               () {
                                                             deletePaper(
