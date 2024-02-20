@@ -107,7 +107,10 @@ class _InstructorScreenState extends State<InstructorScreen> {
       loading.show();
       await documentReference.delete();
       loading.dismiss();
-      instructor.removeAt(index);
+      setState(() {
+        instructor.removeAt(index);
+      });
+      
 
       // ignore: use_build_context_synchronously
       Globals.showSnackBar(

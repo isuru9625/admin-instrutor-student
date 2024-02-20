@@ -166,7 +166,7 @@ class _InstructorEntryScreenState extends State<InstructorEntryScreen> {
                                                                 isMcq: mcq,
                                                                 isStructure:
                                                                     structure,
-                                                                isEssay: essay),
+                                                                isEssay: essay, paperDocId: ''),
                                                           )));
                                             },
                                             icon: const Icon(

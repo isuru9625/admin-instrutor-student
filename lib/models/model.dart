@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Paper {
   String paperId = '';
+  String paperDocId = '';
   String paperName = '';
   bool isMcq = false;
   bool isStructure = false;
@@ -11,6 +12,7 @@ class Paper {
 
   Paper(
       {required this.paperId,
+      required this.paperDocId,
       required this.paperName,
       required this.isMcq,
       required this.isStructure,

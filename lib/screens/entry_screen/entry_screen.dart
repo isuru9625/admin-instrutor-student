@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:educator_app/globals.dart';
 import 'package:educator_app/models/model.dart';
+import 'package:educator_app/popups/confirmation_popup.dart';
 import 'package:educator_app/popups/loading_popup.dart';
 import 'package:educator_app/screens/res/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -58,22 +59,24 @@ class _EntryScreenState extends State<EntryScreen> {
         'isMcq': isMcqSelected,
         'isStructured': isStructuredSelected,
         'isEssay': isEssaySelected,
+      }).then((paper) {
+        setState(() {
+          paperList.insert(
+              0,
+              Paper(
+                  paperId: paperId,
+                  paperName: paperName,
+                  isMcq: isMcqSelected,
+                  isStructure: isStructuredSelected,
+                  isEssay: isEssaySelected,
+                  paperDocId: paper.id));
+          entryController.clear();
+          isMCQ = false;
+          isStructured = false;
+          isEssay = false;
+        });
       });
       loading.dismiss();
-      setState(() {
-        paperList.insert(
-            0,
-            Paper(
-                paperId: paperId,
-                paperName: paperName,
-                isMcq: isMcqSelected,
-                isStructure: isStructuredSelected,
-                isEssay: isEssaySelected));
-        entryController.clear();
-        isMCQ = false;
-        isStructured = false;
-        isEssay = false;
-      });
 
       // ignore: use_build_context_synchronously
       Globals.showSnackBar(
@@ -100,10 +103,34 @@ class _EntryScreenState extends State<EntryScreen> {
             paperName: data['paperName'],
             isMcq: data['isMcq'],
             isStructure: data['isStructured'],
-            isEssay: data['isEssay']));
+            isEssay: data['isEssay'],
+            paperDocId: data.id));
       });
       isLoading = false;
     });
+  }
+
+  void deletePaper(String paperDocId, int index) async {
+    try {
+      DocumentReference documentReference =
+          FirebaseFirestore.instance.collection('papers').doc(paperDocId);
+      final loading = LoadingPopup(context);
+      loading.show();
+      await documentReference.delete();
+      loading.dismiss();
+      setState(() {
+        paperList.removeAt(index);
+      });
+
+      // ignore: use_build_context_synchronously
+      Globals.showSnackBar(
+          context: context,
+          message: 'Paper deleted successfully',
+          isSuccess: true);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error deleting instructor: $e');
+    }
   }
 
   @override
@@ -422,54 +449,83 @@ class _EntryScreenState extends State<EntryScreen> {
                                         color: AppColors.ligthWhite,
                                         borderRadius:
                                             BorderRadius.circular(10)),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    child: Row(
                                       children: [
-                                        Text(
-                                          paperList[index].paperName,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.black),
-                                        ),
-                                        const Gap(5),
-                                        Row(
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Visibility(
-                                              visible: paperList[index].isMcq,
-                                              child: const SizedBox(
-                                                height: 10,
-                                                width: 20,
-                                                child: CircleAvatar(
-                                                  backgroundColor:
-                                                      AppColors.purple,
-                                                ),
-                                              ),
+                                            Text(
+                                              paperList[index].paperName,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColors.black),
                                             ),
-                                            Visibility(
-                                              visible:
-                                                  paperList[index].isStructure,
-                                              child: const SizedBox(
-                                                height: 10,
-                                                width: 20,
-                                                child: CircleAvatar(
-                                                  backgroundColor:
-                                                      AppColors.green,
+                                            const Gap(5),
+                                            Row(
+                                              children: [
+                                                Visibility(
+                                                  visible:
+                                                      paperList[index].isMcq,
+                                                  child: const SizedBox(
+                                                    height: 10,
+                                                    width: 20,
+                                                    child: CircleAvatar(
+                                                      backgroundColor:
+                                                          AppColors.purple,
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                            ),
-                                            Visibility(
-                                              visible: paperList[index].isEssay,
-                                              child: const SizedBox(
-                                                height: 10,
-                                                width: 20,
-                                                child: CircleAvatar(
-                                                  backgroundColor:
-                                                      AppColors.red,
+                                                Visibility(
+                                                  visible: paperList[index]
+                                                      .isStructure,
+                                                  child: const SizedBox(
+                                                    height: 10,
+                                                    width: 20,
+                                                    child: CircleAvatar(
+                                                      backgroundColor:
+                                                          AppColors.green,
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                            ),
+                                                Visibility(
+                                                  visible:
+                                                      paperList[index].isEssay,
+                                                  child: const SizedBox(
+                                                    height: 10,
+                                                    width: 20,
+                                                    child: CircleAvatar(
+                                                      backgroundColor:
+                                                          AppColors.red,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            )
                                           ],
+                                        ),
+                                        Expanded(
+                                          child: Align(
+                                            alignment: Alignment.centerRight,
+                                            child: IconButton(
+                                                onPressed: () {
+                                                  ConfirmationPopup(context)
+                                                      .show(
+                                                          message:
+                                                              'Are you sure you want to delete the paper?',
+                                                          callbackOnYesPressed:
+                                                              () {
+                                                            deletePaper(
+                                                                paperList[index]
+                                                                    .paperDocId,
+                                                                index);
+                                                          });
+                                                },
+                                                icon: const Icon(
+                                                  Icons.delete,
+                                                  color: AppColors.red,
+                                                )),
+                                          ),
                                         )
                                       ],
                                     ),
